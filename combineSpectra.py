@@ -122,27 +122,6 @@ def scale_luminosity (luminosity, flux, multiplier):
 
     return scaled_flux
 
-def redden_scale (filename, mass, lum_multiplier, reddening):
-    """
-    Helper function to redden and scale the luminosity / flux values
-    after reading in the spectrum.
-    
-        Parameters:
-            filename (string): name of MARCS file
-            mass (int): mass of star in Mo (used only for labeling the output)
-            lum_multiplier (float): luminosity multiplier (logL)
-            reddening (float): A_v value to redden the spectrum by
-
-        Returns:
-            wavelength ([float]): wavelength array
-            flux_red ([float]): reddened and scaled flux array
-    """
-    wavelength, flux, radius, luminosity = extract_MARCSvals (filename)
-    flux_scaled = scale_luminosity(luminosity, flux, lum_multiplier)
-    flux_red = redden_flux(reddening,wavelength,flux_scaled)
-
-    return wavelength, flux_red
-
 def combine_spectra (star1_flux, star2_flux):
     """
     Combines the flux of two spectra by adding them together.
@@ -261,27 +240,56 @@ def extract_MARCS_vals (filename):
     
     return wavelength, flux, radius, luminosity
 
+def redden_scale (filename, lum_multiplier, reddening):
+    """
+    Helper function to redden and scale the luminosity / flux values
+    after reading in the spectrum.
+    
+        Parameters:
+            filename (string): name of MARCS file
+            lum_multiplier (float): luminosity multiplier (logL)
+            reddening (float): A_v value to redden the spectrum by
+
+        Returns:
+            wavelength ([float]): wavelength array
+            flux_red ([float]): reddened and scaled flux array
+    """
+    wavelength, flux, radius, luminosity = extract_MARCSvals (filename)
+    flux_scaled = scale_luminosity(luminosity, flux, lum_multiplier)
+    flux_red = redden_flux(reddening,wavelength,flux_scaled)
+
+    return wavelength, flux_red
+
 def main():
+    # the MARCS models are created for unreddened, 15Mo stars
+    # this code will generate red supergiants of different masses
+    # by scaling the flux based on the luminosity and also apply
+    # a reddening correction
+    
+    # the following luminosity multiplier corresponds to the
+    # following masses: 10Mo, 15Mo, 20Mo, 25Mo
+    lum_multiplier = [4.2,1,5.2,5.4]
+
+    # A_v / reddening value
+    # appropriate values range from 0 - 2.8 in 0.2 increments
+    reddening = 1.2
+    
     # STAR 1
     # in this example, this is a red supergiant from MARCS models
     star1_filename = 's4000_g+0.0_m15._t05'
-    star1_wave, star1_flux, star1_rad, star1_lum = extract_MARCS_vals (star1_filename)
+    star1_wave, star1_flux = redden_scale (star1_filename, lum_multiplier, reddening)
 
     # STAR 2
     # in this example, this is a B star from the BSTAR06 models
     star2_filename = 'BG20000g400_150.11'
     star2_wave, star2_flux = extract_BSTAR_vals (star2_filename)
 
-    # reddening range
-#    reddening = np.arange(0,2.8,0.2)
-    # pass in single value
-    
-    # mass / luminosity range
-    # pass in single value
-#    mass = ["10","15","20","25"]
-#    lum_multiplier = [4.2,logL_R,5.2,5.4]
+    flux_combined = combine_spectra(star1_flux,star2_flux)
 
-# np.savetxt("mods_all/RSG_"+filenameR[7:11]+"K_"+mass[i]+"Mo+B"+ty+"_"+str(T_B)+"K_R"+str(reddening[r])+".txt",np.array(list(zip(Bxnew,rFlux+Bynew))))
+    outputFileName = "RSG_Bstar_combinedSpec.txt"
+
+    # save the output spectrum
+    np.savetxt(outputFileName,np.array(list(zip(star2_wave,flux_combined))))
 
 if __name__ == "__main__":
     main()
