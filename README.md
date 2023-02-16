@@ -3,9 +3,7 @@
 This program combines model spectra from two different types of stars to create a final combined binary-star spectrum. It also uses basic stellar astrophysics equations to calculate how the wavelength-dependent flux would change in the following circumstances:
 * The mass (luminosity) of the star or its spectral type (dwarf, giant, supergiant) is changed
 * A reddening correction is applied
-This program formed the basis of [Neugent et al. (2018)](https://ui.adsabs.harvard.edu/abs/2018AJ....156..225N/abstract) and has been applied to the red supergiant [MARCS models](https://marcs.astro.uu.se) and the B-type star [BSTAR06 models](http://tlusty.oca.eu/Tlusty2002/tlusty-frames-BS06.html). However, it can be generalized to combine model or observed spectra from any two types of stars. 
-
-## Methodology
+This program formed the basis of [Neugent et al. (2018)](https://ui.adsabs.harvard.edu/abs/2018AJ....156..225N/abstract) and has been applied to the red supergiant [MARCS models](https://marcs.astro.uu.se) and the B-type star [BSTAR06 models](http://tlusty.oca.eu/Tlusty2002/tlusty-frames-BS06.html). However, it can be generalized to combine model or observed spectra from any two types of stars. The helper functions within the code can also be used to redden a single spectrum, or to transform the wavelength-dependent flux to what you would expect for a more or less massive star of the same temperature. 
 
 ## Using this code
 
@@ -17,7 +15,9 @@ This code has been tested using `python 3.7.3`, `numpy 1.18.2`, and `scipy 1.3.3
 
 ### Running the code
 
-The only values that need to be changed are located in the main method. Here you can change:
+This code is currently highly specialized to using the MARCS and BSTAR06 models. However, with some edits, it could be used to combine model or observed spectra from any set of stars. 
+
+To run the code on MARCS and BSTAR06 models, the only values that need to be changed are located in the main method. Here you can change:
 * the luminosity multiplier (used to change the mass of the red supergiant)
 * the reddening (A_v)
 * the number of points to interpolate the spectra over
