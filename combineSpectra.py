@@ -33,7 +33,7 @@ def calc_radius(lum, temp):
     """
     # Stefan-Boltzmann constant
     sig = 5.6e-5  # erg cm^-2 K^-4 K^-1
-    radius = np.sqrt(lum / (4 * np.pi * temp**4**sig))
+    radius = np.sqrt(lum / (4 * np.pi * temp**4*sig))
 
     return radius
 
@@ -71,7 +71,7 @@ def interp_spectra(wavelength, flux, n_points):
     lin_interp = interp1d(wavelength, flux)
     # create a linear spacing between the max and min wavelenth with
     # the requested number of points
-    wavelength_interp = np.linspace(min(wavelength), max(flux), n_points)
+    wavelength_interp = np.linspace(min(wavelength), max(wavelength), n_points)
     # interpolate the flux
     flux_interp = lin_interp(wavelength_interp)
 
@@ -179,7 +179,7 @@ def rad_lum_from_header(filename):
             luminosity (float): luminosity of MARCS model star
     """
     ## RSG header to determine radius
-    with open(filename + ".mod") as file:
+    with open(filename) as file:
         for i, line in enumerate(file):
             if i == 7:
                 radius = float(line[0:12])
@@ -190,7 +190,7 @@ def rad_lum_from_header(filename):
     return radius, luminosity
 
 
-def extract_BSTAR_vals(filename):
+def extract_BSTAR_vals(filename, n_points):
     """
     Extract the relevant information from the BSTARO6 model header
     and use this information to convert the flux to the same
@@ -198,6 +198,7 @@ def extract_BSTAR_vals(filename):
 
         Parameters:
             filename (string): name of BSTAR06 model file
+            n_points (int): total number of points requested in interpolated array
 
         Returns:
             wavelength ([float]): wavelength array
@@ -208,11 +209,11 @@ def extract_BSTAR_vals(filename):
         inline = f.readline().strip("\n")
 
     # saves the relevant information into variables
-    cl = line[1]
-    temperature = float(line[3:8])
-    Mv = float(line[25:29])
-    BC = float(line[33:37])
-    g = line[41:44]
+    cl = inline[1]
+    temperature = float(inline[3:8])
+    Mv = float(inline[25:29])
+    BC = float(inline[33:37])
+    g = inline[41:44]
 
     # determines the class of star based on the number
     # in the first line
@@ -229,18 +230,19 @@ def extract_BSTAR_vals(filename):
     # interpolate the spectrum so it can later be joined with the MARCS model
     # also, multiply the flux by the radius to convert the flux to the
     # same units as the MARCS models
-    wavelength, flux = interp_spectra(BSTAR_model[:, 0], BSTAR_model[:, 1] * radius, 7000)
+    wavelength, flux = interp_spectra(BSTAR_model[:, 0], BSTAR_model[:, 1] * radius, n_points)
 
     return wavelength, flux
 
 
-def extract_MARCS_vals(filename):
+def extract_MARCS_vals(filename, n_points):
     """
     Extract the relevant information from the MARCS model header
     and get spectrum ready to be combined with BSTAR06 models.
 
         Parameters:
             filename (string): name of MARCS model file
+            n_points (int): total number of points requested in interpolated array
 
         Returns:
             wavelength ([float]): wavelength array
@@ -252,26 +254,27 @@ def extract_MARCS_vals(filename):
     file_mod = filename + ".mod"
 
     # read in the wavelength values for the MARCS models
-    MARCS_wave = np.loadtxt("MARCS/flx_wavelengths.vac")
+    MARCS_wave = np.loadtxt("flx_wavelengths.vac")
     MARCS_flux = np.loadtxt(file_flux)
     # convert from vacuum to air
     MARCS_waveAir = convert_vac_to_air(MARCS_wave)
-
-    # shorten MARCSarray to only include visible wavelength range
-    wave_sm = MARCS_waveAir[18017:40766]
-    flux_sm = MARCS_flux[18017:40766] * R_R
-
-    # interpolate
-    wavelength, flux = interp_spectra(wave_sm, flux_sm, 7000)
 
     # get radius and luminosity from header
     # to later be used to scale the flux appropriately
     radius, luminosity = rad_lum_from_header(file_mod)
 
+    # shorten MARCSarray to only include visible wavelength range
+    wave_sm = MARCS_waveAir[18017:40766]
+    # multiply by radius for correct flux units
+    flux_sm = MARCS_flux[18017:40766] * radius
+
+    # interpolate
+    wavelength, flux = interp_spectra(wave_sm, flux_sm, n_points)
+
     return wavelength, flux, radius, luminosity
 
 
-def redden_scale(filename, lum_multiplier, reddening):
+def redden_scale(filename, lum_multiplier, reddening, n_points):
     """
     Helper function to redden and scale the luminosity / flux values
     after reading in the spectrum.
@@ -280,12 +283,13 @@ def redden_scale(filename, lum_multiplier, reddening):
             filename (string): name of MARCS file
             lum_multiplier (float): luminosity multiplier (logL)
             reddening (float): A_v value to redden the spectrum by
+            n_points (int): total number of points requested in interpolated array
 
         Returns:
             wavelength ([float]): wavelength array
             flux_red ([float]): reddened and scaled flux array
     """
-    wavelength, flux, radius, luminosity = extract_MARCSvals(filename)
+    wavelength, flux, radius, luminosity = extract_MARCS_vals(filename, n_points)
     flux_scaled = scale_luminosity(luminosity, flux, lum_multiplier)
     flux_red = redden_flux(reddening, wavelength, flux_scaled)
 
@@ -298,30 +302,36 @@ def main():
     # by scaling the flux based on the luminosity and also apply
     # a reddening correction
 
-    # the following luminosity multiplier corresponds to the
-    # following masses: 10Mo, 15Mo, 20Mo, 25Mo
-    lum_multiplier = [4.2, 1, 5.2, 5.4]
+    # luminosity multiplier vs. mass
+    # 4.2 -> 10Mo
+    # 1 -> 15Mo
+    # 5.2 -> 20Mo
+    # 5.4 -> 25Mo
+    lum_multiplier = 5.2
 
     # A_v / reddening value
     # appropriate values range from 0 - 2.8 in 0.2 increments
     reddening = 1.2
 
+    # number of points to smooth the two spectra over
+    n_points = 7000
+
     # STAR 1
     # in this example, this is a red supergiant from MARCS models
     star1_filename = "s4000_g+0.0_m15._t05"
-    star1_wave, star1_flux = redden_scale(star1_filename, lum_multiplier, reddening)
+    star1_wave, star1_flux = redden_scale(star1_filename, lum_multiplier, reddening, n_points)
 
     # STAR 2
     # in this example, this is a B star from the BSTAR06 models
     star2_filename = "BG20000g400_150.11"
-    star2_wave, star2_flux = extract_BSTAR_vals(star2_filename)
+    star2_wave, star2_flux = extract_BSTAR_vals(star2_filename, n_points)
 
     flux_combined = combine_spectra(star1_flux, star2_flux)
 
-    outputFileName = "RSG_Bstar_combinedSpec.txt"
-
-    # save the output spectrum
-    np.savetxt(outputFileName, np.array(list(zip(star2_wave, flux_combined))))
+    # save the output spectrum and the spectra of the two individual stars
+    np.savetxt("RSG_B_combined_spectrum.txt", np.array(list(zip(star2_wave, flux_combined))))
+    np.savetxt("RSG_single_spectrum.txt", np.array(list(zip(star1_wave, star1_flux))))
+    np.savetxt("Bstar_single_spectrum.txt", np.array(list(zip(star2_wave, star2_flux))))
 
 
 if __name__ == "__main__":
