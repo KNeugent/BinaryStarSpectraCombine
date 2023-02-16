@@ -29,6 +29,7 @@ Example input files are provided as well. The MARCS model for a 4000K, log g = 0
 * [s4000_g+0.0_m15._t05.flx](https://github.com/KNeugent/BinaryStarSpectraCombine/blob/main/s4000_g%2B0.0_m15._t05.flx) - MARCS model file of flux values
 * [s4000_g+0.0_m15._t05.mod](https://github.com/KNeugent/BinaryStarSpectraCombine/blob/main/s4000_g%2B0.0_m15._t05.mod) - MARCS model file of model values (physical properties, etc.)
 * [flx_wavelengths.vac](https://github.com/KNeugent/BinaryStarSpectraCombine/blob/main/flx_wavelengths.vac) - MARCS model wavelengths in vacuum (a helper function is in the code to convert wavelengths to air)
+
 The BSTAR06 model for a 20000K, log g = 4.0, v_rot = 150 km/s star is provided:
 * [BG20000g400_150.11](https://github.com/KNeugent/BinaryStarSpectraCombine/blob/main/BG20000g400_150.11) - BSTAR06 model file with wavelength, flux, and physical properties in commented first line.
 * [BStars.txt](https://github.com/KNeugent/BinaryStarSpectraCombine/blob/main/BStars.txt) - A list of typical B-star temperatures, spectral types, absolute magnitudes (M_v), and bolometric corrections that can be used to edit the input flux to apply to either a dwarf, giant, or supergiant star.
