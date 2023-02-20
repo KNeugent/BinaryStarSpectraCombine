@@ -32,12 +32,12 @@ Example input files are provided as well. The MARCS model for a 4000K, log g = 0
 
 The BSTAR06 model for a 20000K, log g = 4.0, v_rot = 150 km/s star is provided:
 * [BG20000g400_150.11](https://github.com/KNeugent/BinaryStarSpectraCombine/blob/main/BG20000g400_150.11) - BSTAR06 model file with wavelength, flux, and physical properties in commented first line.
-* [BStars.txt](https://github.com/KNeugent/BinaryStarSpectraCombine/blob/main/BStars.txt) - A list of typical B-star temperatures, spectral types, absolute magnitudes (M_v), and bolometric corrections that can be used to edit the input flux to apply to either a dwarf, giant, or supergiant star.
+* [B_stars.txt](https://github.com/KNeugent/BinaryStarSpectraCombine/blob/main/B_stars.txt) - A list of typical B-star temperatures, spectral types, absolute magnitudes (M_v), and bolometric corrections that can be used to edit the input flux to apply to either a dwarf, giant, or supergiant star.
 
 ### Outputted files
 
 The program outputs three txt files ([RSG_single_spectrum.txt](https://github.com/KNeugent/BinaryStarSpectraCombine/blob/main/RSG_single_spectrum.txt), [Bstar_single_spectrum](https://github.com/KNeugent/BinaryStarSpectraCombine/blob/main/Bstar_single_spectrum.txt), and [RSG_B_combined_spectrum.txt](https://github.com/KNeugent/BinaryStarSpectraCombine/blob/main/RSG_B_combined_spectrum.txt)) that have the wavelength and flux spanning from 3200 Angstroms - 1 micron of the transformed models.
 
-There is additionally a very small helper program, [plotSpectra.py](https://github.com/KNeugent/BinaryStarSpectraCombine/blob/main/plotSpectra.py) that plots the output files and produces an eps plot, as shown below:
+There is additionally a very small helper program, [plot_spectra.py](https://github.com/KNeugent/BinaryStarSpectraCombine/blob/main/plot_spectra.py) that plots the output files and produces an eps plot, as shown below:
 
 ![RSGbinarySpectrum](https://github.com/KNeugent/BinaryStarSpectraCombine/blob/main/RSGbinarySpectrum.jpg)
